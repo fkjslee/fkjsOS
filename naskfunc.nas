@@ -25,14 +25,14 @@
 		GLOBAL	_memtest_sub
 		GLOBAL	_load_cr0, _store_cr0
 		GLOBAL	_asm_inthandler20, _asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
-		GLOBAL	_asm_inthandler0d
+		GLOBAL	_asm_inthandler0c, _asm_inthandler0d
 		GLOBAL	_load_tr
 		GLOBAL	_farjmp, _farcall
 		GLOBAL	_asm_cons_putchar
 		GLOBAL	_asm_hrb_api, _start_app
 		EXTERN	_inthandler20, _inthandler21, _inthandler27, _inthandler2c
+		EXTERN	_inthandler0c, _inthandler0d
 		EXTERN	_hrb_api
-		EXTERN	_inthandler0d
 		
 ; ??ìIîüêî(?éó.cppï∂åè?)
 [SECTION .text]					; ïs?
@@ -187,6 +187,26 @@ _asm_inthandler2c:
 		POPAD
 		POP		DS
 		POP		ES
+		IRETD
+
+_asm_inthandler0c:
+		STI
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler0c
+		CMP		EAX,0
+		JNE		end_app
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		ADD		ESP,4	
 		IRETD
 
 _asm_inthandler0d:
