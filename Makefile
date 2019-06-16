@@ -69,9 +69,12 @@ crack1.bim : crack1.obj Makefile
 
 crack1.hrb : crack1.bim Makefile
 	$(BIM2HRB) crack1.bim crack1.hrb 0
+	
+crack2.hrb : crack2.nas Makefile
+	$(NASK) crack2.nas crack2.hrb crack2.lst
 
 fkjs.img : ipl10.bin fkjs.sys Makefile \
-		hello.hrb hello2.hrb a.hrb hello3.hrb crack1.hrb
+		hello.hrb hello2.hrb a.hrb hello3.hrb crack1.hrb crack2.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
@@ -79,6 +82,7 @@ fkjs.img : ipl10.bin fkjs.sys Makefile \
 		copy from:make.bat to:@: \
 		copy from:hello.hrb to:@: \
 		copy from:crack1.hrb to:@: \
+		copy from:crack2.hrb to:@: \
 		copy from:hello3.hrb to:@: \
 		copy from:a.hrb to:@: \
 		copy from:hello2.hrb to:@: \

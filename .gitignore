@@ -3,6 +3,9 @@
 *.lst
 *.gas
 *.obj
+*.hrb
+*.map
+*.bim
 bootpack.nas
 bootpack.map
 bootpack.bim
