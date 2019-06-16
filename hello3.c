@@ -1,4 +1,5 @@
 void api_putchar(int c);
+void api_end(void);
 
 void FkjsMain(void)
 {
@@ -7,5 +8,5 @@ void FkjsMain(void)
 	api_putchar('l');
 	api_putchar('l');
 	api_putchar('o');
-	return;
+	api_end();
 }
