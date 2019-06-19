@@ -76,8 +76,22 @@ bug3.bim : bug3.obj Makefile
 bug3.hrb : bug3.bim Makefile
 	$(BIM2HRB) bug3.bim bug3.hrb 0
 	
+hello4.bim : hello4.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:hello4.bim stack:1k map:hello4.map \
+		hello4.obj a_nask.obj
+
+hello4.hrb : hello4.bim Makefile
+	$(BIM2HRB) hello4.bim hello4.hrb 0
+	
+hello5.bim : hello5.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:hello5.bim stack:1k map:hello5.map hello5.obj
+
+hello5.hrb : hello5.bim Makefile
+	$(BIM2HRB) hello5.bim hello5.hrb 0
+	
 fkjs.img : ipl10.bin fkjs.sys Makefile \
-		hello.hrb hello2.hrb a.hrb hello3.hrb bug1.hrb bug3.hrb
+		hello.hrb hello2.hrb a.hrb hello3.hrb bug1.hrb bug3.hrb \
+		hello4.hrb hello5.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
@@ -86,6 +100,8 @@ fkjs.img : ipl10.bin fkjs.sys Makefile \
 		copy from:hello.hrb to:@: \
 		copy from:hello3.hrb to:@: \
 		copy from:a.hrb to:@: \
+		copy from:hello4.hrb to:@: \
+		copy from:hello5.hrb to:@: \
 		copy from:hello2.hrb to:@: \
 		copy from:bug1.hrb to:@: \
 		copy from:bug3.hrb to:@: \
