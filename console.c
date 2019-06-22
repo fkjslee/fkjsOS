@@ -1,4 +1,4 @@
-/* コンソール関係 */
+
 
 #include "bootpack.h"
 #include <stdio.h>
@@ -49,40 +49,32 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 				}
 				timer_settime(timer, 50);
 			}
-			if (i == 2) {	/* カーソルON */
+			if (i == 2) {	
 				cons.cur_c = COL8_FFFFFF;
 			}
-			if (i == 3) {	/* カーソルOFF */
+			if (i == 3) {	
 				boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
 				cons.cur_c = -1;
 			}
-			if (256 <= i && i <= 511) { /* キーボードデータ（タスクA経由） */
+			if (256 <= i && i <= 511) { 
 				if (i == 8 + 256) {
-					/* バックスペース */
 					if (cons.cur_x > 16) {
-						/* カーソルをスペースで消してから、カーソルを1つ戻す */
 						cons_putchar(&cons, ' ', 0);
 						cons.cur_x -= 8;
 					}
 				} else if (i == 10 + 256) {
-					/* Enter */
-					/* カーソルをスペースで消してから改行する */
 					cons_putchar(&cons, ' ', 0);
 					cmdline[cons.cur_x / 8 - 2] = 0;
 					cons_newline(&cons);
 					cons_runcmd(cmdline, &cons, fat, memtotal);	/* コマンド実行 */
-					/* プロンプト表示 */
 					cons_putchar(&cons, '>', 1);
 				} else {
-					/* 一般文字 */
 					if (cons.cur_x < 240) {
-						/* 一文字表示してから、カーソルを1つ進める */
 						cmdline[cons.cur_x / 8 - 2] = i - 256;
 						cons_putchar(&cons, i - 256, 1);
 					}
 				}
 			}
-			/* カーソル再表示 */
 			if (cons.cur_c >= 0) {
 				boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
 			}
@@ -96,7 +88,7 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move)
 	char s[2];
 	s[0] = chr;
 	s[1] = 0;
-	if (s[0] == 0x09) {	/* タブ */
+	if (s[0] == 0x09) {	
 		for (;;) {
 			putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, " ", 1);
 			cons->cur_x += 8;
@@ -104,17 +96,15 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move)
 				cons_newline(cons);
 			}
 			if (((cons->cur_x - 8) & 0x1f) == 0) {
-				break;	/* 32で割り切れたらbreak */
+				break;	
 			}
 		}
-	} else if (s[0] == 0x0a) {	/* 改行 */
+	} else if (s[0] == 0x0a) {	
 		cons_newline(cons);
-	} else if (s[0] == 0x0d) {	/* 復帰 */
-		/* とりあえずなにもしない */
-	} else {	/* 普通の文字 */
+	} else if (s[0] == 0x0d) {	
+	} else {	
 		putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 1);
 		if (move != 0) {
-			/* moveが0のときはカーソルを進めない */
 			cons->cur_x += 8;
 			if (cons->cur_x == 8 + 240) {
 				cons_newline(cons);
@@ -129,9 +119,8 @@ void cons_newline(struct CONSOLE *cons)
 	int x, y;
 	struct SHEET *sheet = cons->sht;
 	if (cons->cur_y < 28 + 112) {
-		cons->cur_y += 16; /* 次の行へ */
+		cons->cur_y += 16; 
 	} else {
-		/* スクロール */
 		for (y = 28; y < 28 + 112; y++) {
 			for (x = 8; x < 8 + 240; x++) {
 				sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
@@ -177,7 +166,6 @@ void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int mem
 		cmd_type(cons, fat, cmdline);
 	} else if (cmdline[0] != 0) {
 		if (cmd_app(cons, fat, cmdline) == 0) {
-			/* コマンドではなく、アプリでもなく、さらに空行でもない */
 			cons_putstr0(cons, "Bad command.\n\n");
 		}
 	}
@@ -239,13 +227,11 @@ void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline)
 	struct FILEINFO *finfo = file_search(cmdline + 5, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
 	char *p;
 	if (finfo != 0) {
-		/* ファイルが見つかった場合 */
 		p = (char *) memman_alloc_4k(memman, finfo->size);
 		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
 		cons_putstr1(cons, p, finfo->size);
 		memman_free_4k(memman, (int) p, finfo->size);
 	} else {
-		/* ファイルが見つからなかった場合 */
 		cons_putstr0(cons, "File not found.\n");
 	}
 	cons_newline(cons);
@@ -261,19 +247,16 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 	struct TASK *task = task_now();
 	int i, segsiz, datsiz, esp, dathrb;
 
-	/* コマンドラインからファイル名を生成 */
 	for (i = 0; i < 13; i++) {
 		if (cmdline[i] <= ' ') {
 			break;
 		}
 		name[i] = cmdline[i];
 	}
-	name[i] = 0; /* とりあえずファイル名の後ろを0にする */
+	name[i] = 0; 
 
-	/* ファイルを探す */
 	finfo = file_search(name, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
 	if (finfo == 0 && name[i - 1] != '.') {
-		/* 見つからなかったので後ろに".HRB"をつけてもう一度探してみる */
 		name[i    ] = '.';
 		name[i + 1] = 'H';
 		name[i + 2] = 'R';
@@ -283,7 +266,6 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 	}
 
 	if (finfo != 0) {
-		/* ファイルが見つかった場合 */
 		p = (char *) memman_alloc_4k(memman, finfo->size);
 		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
 		if (finfo->size >= 36 && strncmp(p + 4, "Hari", 4) == 0 && *p == 0x00) {
@@ -307,7 +289,6 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 		cons_newline(cons);
 		return 1;
 	}
-	/* ファイルが見つからなかった場合 */
 	return 0;
 }
 
@@ -318,10 +299,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 	struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec);
 	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *) 0x0fe4);
 	struct SHEET *sht;
-	int *reg = &eax + 1;	/* eax后面的地址 */
-	/* 强行改写通过PUSHAD保存的值 */
-	/* reg[0] : EDI,   reg[1] : ESI,   reg[2] : EBP,   reg[3] : ESP */
-	/* reg[4] : EBX,   reg[5] : EDX,   reg[6] : ECX,   reg[7] : EAX */
+	int *reg = &eax + 1;	
 
 	if (edx == 1) {
 		cons_putchar(cons, eax & 0xff, 1);
@@ -339,13 +317,17 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 		sheet_updown(sht, 3);	/* 背景层高度3 在taks_a之上 */
 		reg[7] = (int) sht;
 	} else if (edx == 6) {
-		sht = (struct SHEET *) ebx;
+		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		putfonts8_asc(sht->buf, sht->bxsize, esi, edi, eax, (char *) ebp + ds_base);
-		sheet_refresh(sht, esi, edi, esi + ecx * 8, edi + 16);
+		if ((ebx & 1) == 0) {
+			sheet_refresh(sht, esi, edi, esi + ecx * 8, edi + 16);
+		}
 	} else if (edx == 7) {
-		sht = (struct SHEET *) ebx;
+		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		boxfill8(sht->buf, sht->bxsize, ebp, eax, ecx, esi, edi);
-		sheet_refresh(sht, eax, ecx, esi + 1, edi + 1);
+		if ((ebx & 1) == 0) {
+			sheet_refresh(sht, esi, edi, esi + ecx * 8, edi + 16);
+		}
 	} else if (edx == 8) {
 		memman_init((struct MEMMAN *) (ebx + ds_base));
 		ecx &= 0xfffffff0;
@@ -356,6 +338,15 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 	} else if (edx == 10) {
 		ecx = (ecx + 0x0f) & 0xfffffff0;
 		memman_free((struct MEMMAN *) (ebx + ds_base), eax, ecx);
+	} else if (edx == 11) {
+		sht = (struct SHEET *) (ebx & 0xfffffffe);
+		sht->buf[sht->bxsize * edi + esi] = eax;
+		if ((ebx & 1) == 0) {
+			sheet_refresh(sht, esi, edi, esi + 1, edi + 1);
+		}
+	} else if (edx == 12) {
+		sht = (struct SHEET *) ebx;
+		sheet_refresh(sht, eax, ecx, esi, edi);
 	}
 	return 0;
 }
