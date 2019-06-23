@@ -59,7 +59,14 @@ star2.bim : star2.obj a_nask.obj Makefile
 star2.hrb : star2.bim Makefile
 	$(BIM2HRB) star2.bim star2.hrb 47k
 	
-fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb
+lines.bim : lines.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:lines.bim stack:1k map:lines.map \
+		lines.obj a_nask.obj
+
+lines.hrb : lines.bim Makefile
+	$(BIM2HRB) lines.bim lines.hrb 48k
+	
+fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb lines.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
@@ -67,6 +74,7 @@ fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb
 		copy from:make.bat to:@: \
 		copy from:a.hrb to:@: \
 		copy from:star2.hrb to:@: \
+		copy from:lines.hrb to:@: \
 		imgout:fkjs.img
 
 # 一般规则
