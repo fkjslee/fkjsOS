@@ -282,6 +282,17 @@ void FkjsMain(void) {
 											mmx = mx;	/* 进入移动模式 */
 											mmy = my;
 										}
+										if (sht->bxsize - 21 <= x && x < sht->bxsize - 5 && 5 <= y && y < 19) {
+											/* 点击 x */
+											if (sht->task != 0) {	/* 如果是应用程序窗口 */
+												cons = (struct CONSOLE *) *((int *) 0x0fec);
+												cons_putstr0(cons, "\nBreak(mouse) :\n");
+												io_cli();	/* 禁止切换任务 */
+												task_cons->tss.eax = (int) &(task_cons->tss.esp0);
+												task_cons->tss.eip = (int) asm_end_app;
+												io_sti();
+											}
+										}
 										break;
 									}
 								}
