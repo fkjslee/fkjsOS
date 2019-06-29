@@ -41,7 +41,7 @@ void FkjsMain(void) {
 	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
 	struct TASK *task_a, *task_cons;
 	struct TIMER *timer;
-	int j, x, y;
+	int j, x, y, mmx = -1, mmy = -1;
 	struct SHEET *sht;
 	
 	init_gdtidt();
@@ -269,7 +269,36 @@ void FkjsMain(void) {
 					sheet_slide(sht_mouse, mx, my);
 					if ((mdec.btn & 0x01) != 0) {
 						/* 按下左键 */
+						if (mmx < 0) {
 						/* 从上到下寻找鼠标所在图层 */
+							for (j = shtctl->top - 1; j > 0; j--) {
+								sht = shtctl->sheets[j];
+								x = mx - sht->vx0;
+								y = my - sht->vy0;
+								if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize) {
+									if (sht->buf[y * sht->bxsize + x] != sht->col_inv) {
+										sheet_updown(sht, shtctl->top - 1);
+										if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) {
+											mmx = mx;	/* 进入移动模式 */
+											mmy = my;
+										}
+										break;
+									}
+								}
+							}
+						} else {
+							/* 如果处于激动模式 */
+							x = mx - mmx;	/* 计算鼠标移动距离 */
+							y = my - mmy;
+							sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
+							mmx = mx;	/* 更新为移动后的坐标 */
+							mmy = my;
+						}
+					} else {
+						/* 没有按下左键 */
+						mmx = -1;	/* 返回通常模式 */
+					}
+					if ((mdec.btn & 0x01) != 0) {
 						for (j = shtctl->top - 1; j > 0; j--) {
 							sht = shtctl->sheets[j];
 							x = mx - sht->vx0;
