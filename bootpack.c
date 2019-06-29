@@ -41,6 +41,8 @@ void FkjsMain(void) {
 	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
 	struct TASK *task_a, *task_cons;
 	struct TIMER *timer;
+	int j, x, y;
+	struct SHEET *sht;
 	
 	init_gdtidt();
 	init_pic();
@@ -233,6 +235,9 @@ void FkjsMain(void) {
 					task_cons->tss.eip = (int) asm_end_app;
 					io_sti();
 				}
+				if (i == 256 + 0x57 && shtctl->top > 2) {	/* F11 */
+					sheet_updown(shtctl->sheets[1], shtctl->top - 1);
+				}
 				if (i == 256 + 0xfa) {	/* 键盘成功接收到数据 */
 					keycmd_wait = -1;
 				}
@@ -263,8 +268,19 @@ void FkjsMain(void) {
 					}
 					sheet_slide(sht_mouse, mx, my);
 					if ((mdec.btn & 0x01) != 0) {
-						/* 按下左键 移动sht_win */
-						sheet_slide(sht_win, mx - 80, my - 8);
+						/* 按下左键 */
+						/* 从上到下寻找鼠标所在图层 */
+						for (j = shtctl->top - 1; j > 0; j--) {
+							sht = shtctl->sheets[j];
+							x = mx - sht->vx0;
+							y = my - sht->vy0;
+							if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize) {
+								if (sht->buf[y * sht->bxsize + x] != sht->col_inv) {
+									sheet_updown(sht, shtctl->top - 1);
+									break;
+								}
+							}
+						}
 					}
 				}
 			} else if (i <= 1) {
