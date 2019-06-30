@@ -186,7 +186,7 @@ void FkjsMain(void) {
 					}
 				}
 				if (i == 256 + 0x1c) {	/* Enter */
-					if (key_win != sht_win) {	/* コンソールへ */
+					if (key_win != sht_win) {	
 						fifo32_put(&task_cons->fifo, 10 + 256);
 					}
 				}
@@ -277,6 +277,11 @@ void FkjsMain(void) {
 								if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize) {
 									if (sht->buf[y * sht->bxsize + x] != sht->col_inv) {
 										sheet_updown(sht, shtctl->top - 1);
+										if (sht != key_win) {
+											cursor_c = keywin_off(key_win, sht_win, cursor_c, cursor_x);
+											key_win = sht;
+											cursor_c = keywin_on(key_win, sht_win, cursor_c);
+										}
 										if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) {
 											mmx = mx;	/* 进入移动模式 */
 											mmy = my;

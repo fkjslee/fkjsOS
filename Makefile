@@ -66,7 +66,23 @@ lines.bim : lines.obj a_nask.obj Makefile
 lines.hrb : lines.bim Makefile
 	$(BIM2HRB) lines.bim lines.hrb 48k
 	
-fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb lines.hrb
+walk.bim : walk.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:walk.bim stack:1k map:walk.map \
+		walk.obj a_nask.obj
+
+walk.hrb : walk.bim Makefile
+	$(BIM2HRB) walk.bim walk.hrb 48k
+
+	
+noodle.bim : noodle.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:noodle.bim stack:1k map:noodle.map \
+		noodle.obj a_nask.obj
+
+noodle.hrb : noodle.bim Makefile
+	$(BIM2HRB) noodle.bim noodle.hrb 40k
+	
+fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb lines.hrb walk.hrb\
+		noodle.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
@@ -75,6 +91,8 @@ fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb lines.hrb
 		copy from:a.hrb to:@: \
 		copy from:star2.hrb to:@: \
 		copy from:lines.hrb to:@: \
+		copy from:walk.hrb to:@: \
+		copy from:noodle.hrb to:@: \
 		imgout:fkjs.img
 
 # 一般规则
