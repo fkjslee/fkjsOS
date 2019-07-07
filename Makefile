@@ -43,56 +43,24 @@ hankaku.obj : hankaku.bin Makefile
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
 
-a.bim : a.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:a.bim map:a.map a.obj a_nask.obj
-
-a.hrb : a.bim Makefile
-	$(BIM2HRB) a.bim a.hrb 0
-
 fkjs.sys : asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb fkjs.sys
-
-star2.bim : star2.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:star2.bim stack:1k map:star2.map \
-		star2.obj a_nask.obj
-
-star2.hrb : star2.bim Makefile
-	$(BIM2HRB) star2.bim star2.hrb 47k
 	
-lines.bim : lines.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:lines.bim stack:1k map:lines.map \
-		lines.obj a_nask.obj
+color.bim : color.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:color.bim stack:1k map:color.map \
+		color.obj a_nask.obj
 
-lines.hrb : lines.bim Makefile
-	$(BIM2HRB) lines.bim lines.hrb 48k
+color.hrb : color.bim Makefile
+	$(BIM2HRB) color.bim color.hrb 56k
 	
-walk.bim : walk.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:walk.bim stack:1k map:walk.map \
-		walk.obj a_nask.obj
-
-walk.hrb : walk.bim Makefile
-	$(BIM2HRB) walk.bim walk.hrb 48k
-
-	
-noodle.bim : noodle.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:noodle.bim stack:1k map:noodle.map \
-		noodle.obj a_nask.obj
-
-noodle.hrb : noodle.bim Makefile
-	$(BIM2HRB) noodle.bim noodle.hrb 40k
-	
-fkjs.img : ipl10.bin fkjs.sys Makefile star2.hrb a.hrb lines.hrb walk.hrb\
-		noodle.hrb
+fkjs.img : ipl10.bin fkjs.sys Makefile\
+		color.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
 		copy from:ipl10.nas to:@: \
 		copy from:make.bat to:@: \
-		copy from:a.hrb to:@: \
-		copy from:star2.hrb to:@: \
-		copy from:lines.hrb to:@: \
-		copy from:walk.hrb to:@: \
-		copy from:noodle.hrb to:@: \
+		copy from:color.hrb to:@: \
 		imgout:fkjs.img
 
 # 一般规则
