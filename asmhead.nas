@@ -166,6 +166,7 @@ skip:
 waitkbdout:
 		IN		 AL,0x64
 		AND		 AL,0x02
+		IN		 AL,0x60 
 		JNZ		waitkbdout		; 
 		RET
 
