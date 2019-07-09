@@ -12,7 +12,7 @@ void FkjsMain(void) {
 	struct FIFO32 fifo, keycmd;
 	char s[40];
 	int fifobuf[128], keycmd_buf[32], *cons_fifo[2];
-	int mx, my, i;
+	int mx, my, i, new_mx = -1, new_my = 0, new_wx = 0x7fffffff, new_wy = 0;
 	unsigned int memtotal;
 	struct MOUSE_DEC mdec;
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -40,9 +40,9 @@ void FkjsMain(void) {
 	int key_shift = 0, key_leds = (binfo->leds >> 4) & 7, keycmd_wait = -1;
 	
 	unsigned char *buf_back, buf_mouse[256], *buf_cons[2];
-	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
+	struct SHEET *sht_back, *sht_mouse, *sht_cons[2];
 	struct TASK *task_a, *task_cons[2], *task;
-	int j, x, y, mmx = -1, mmy = -1;
+	int j, x, y, mmx = -1, mmy = -1, mmx2 = 0;
 	struct SHEET *sht = 0, *key_win;
 	
 	init_gdtidt();
@@ -130,8 +130,19 @@ void FkjsMain(void) {
 		}
 		io_cli();
 		if (fifo32_status(&fifo) == 0) {
-			task_sleep(task_a);
-			io_sti();
+			/* 如果FIFO为空，当存在搁置的绘图操作时立即执行 */
+			if (new_mx >= 0) {
+				io_sti();
+				sheet_slide(sht_mouse, new_mx, new_my);
+				new_mx = -1;
+			} else if (new_wx != 0x7fffffff) {
+				io_sti();
+				sheet_slide(sht, new_wx, new_wy);
+				new_wx = 0x7fffffff;
+			} else {
+				task_sleep(task_a);
+				io_sti();
+			}
 		} else {
 			i = fifo32_get(&fifo);
 			io_sti();
@@ -230,7 +241,8 @@ void FkjsMain(void) {
 					if (my > binfo->scrny - 1) {
 						my = binfo->scrny - 1;
 					}
-					sheet_slide(sht_mouse, mx, my);
+					new_mx = mx;
+					new_my = my;
 					if ((mdec.btn & 0x01) != 0) {
 						/* 按下左键 */
 						if (mmx < 0) {
@@ -248,8 +260,10 @@ void FkjsMain(void) {
 											keywin_on(key_win);
 										}
 										if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) {
-											mmx = mx;	/* 进入移动模式 */
+											mmx = mx;	/* ウィンドウ移動モードへ */
 											mmy = my;
+											mmx2 = sht->vx0;
+											new_wy = sht->vy0;
 										}
 										if (sht->bxsize - 21 <= x && x < sht->bxsize - 5 && 5 <= y && y < 19) {
 											/* 点击 x */
@@ -267,16 +281,20 @@ void FkjsMain(void) {
 								}
 							}
 						} else {
-							/* 如果处于激动模式 */
+							/* 如果处于移动模式 */
 							x = mx - mmx;	/* 计算鼠标移动距离 */
 							y = my - mmy;
-							sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
-							mmx = mx;	/* 更新为移动后的坐标 */
-							mmy = my;
+							new_wx = (mmx2 + x + 2) & ~3;
+							new_wy = new_wy + y;
+							mmy = my; /* 更新为移动后的坐标 */
 						}
 					} else {
 						/* 没有按下左键 */
-						mmx = -1;	/* 返回通常模式 */
+						mmx = -1;	/* 通常モードへ */
+						if (new_wx != 0x7fffffff) {
+							sheet_slide(sht, new_wx, new_wy);	/* 固定图层位置 */
+							new_wx = 0x7fffffff;
+						}	/* 返回通常模式 */
 					}
 				}
 			}
