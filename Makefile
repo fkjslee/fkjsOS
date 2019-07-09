@@ -53,14 +53,22 @@ color.bim : color.obj a_nask.obj Makefile
 color.hrb : color.bim Makefile
 	$(BIM2HRB) color.bim color.hrb 56k
 	
+color2.bim : color2.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:color2.bim stack:1k map:color2.map \
+		color2.obj a_nask.obj
+
+color2.hrb : color2.bim Makefile
+	$(BIM2HRB) color2.bim color2.hrb 56k
+	
 fkjs.img : ipl10.bin fkjs.sys Makefile\
-		color.hrb
+		color.hrb color2.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
 		copy from:ipl10.nas to:@: \
 		copy from:make.bat to:@: \
 		copy from:color.hrb to:@: \
+		copy from:color2.hrb to:@: \
 		imgout:fkjs.img
 
 # 一般规则
