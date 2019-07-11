@@ -40,8 +40,8 @@ void FkjsMain(void) {
 	int key_shift = 0, key_leds = (binfo->leds >> 4) & 7, keycmd_wait = -1;
 	
 	unsigned char *buf_back, buf_mouse[256], *buf_cons[2];
-	struct SHEET *sht_back, *sht_mouse, *sht_cons[2];
-	struct TASK *task_a, *task_cons[2], *task;
+	struct SHEET *sht_back, *sht_mouse;
+	struct TASK *task_a, *task;
 	int j, x, y, mmx = -1, mmy = -1, mmx2 = 0;
 	struct SHEET *sht = 0, *key_win;
 	
@@ -49,6 +49,7 @@ void FkjsMain(void) {
 	init_pic();
 	io_sti();
 	fifo32_init(&fifo, 128, fifobuf, 0);
+	*((int *) 0x0fec) = (int) &fifo;
 	init_pit();
 	init_keyboard(&fifo, 256);
 	enable_mouse(&fifo, 512, &mdec);
@@ -75,29 +76,7 @@ void FkjsMain(void) {
 	init_screen8(buf_back, binfo->scrnx, binfo->scrny);
 	
 	/* sht_cons */
-	for (i = 0; i < 2; i++) {
-		sht_cons[i] = sheet_alloc(shtctl);
-		buf_cons[i] = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
-		sheet_setbuf(sht_cons[i], buf_cons[i], 256, 165, -1); /* 透明色 */
-		make_window8(buf_cons[i], 256, 165, "console", 0);
-		make_textbox8(sht_cons[i], 8, 28, 240, 128, COL8_000000);
-		task_cons[i] = task_alloc();
-		task_cons[i]->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
-		task_cons[i]->tss.eip = (int) &console_task;
-		task_cons[i]->tss.es = 1 * 8;
-		task_cons[i]->tss.cs = 2 * 8;
-		task_cons[i]->tss.ss = 1 * 8;
-		task_cons[i]->tss.ds = 1 * 8;
-		task_cons[i]->tss.fs = 1 * 8;
-		task_cons[i]->tss.gs = 1 * 8;
-		*((int *) (task_cons[i]->tss.esp + 4)) = (int) sht_cons[i];
-		*((int *) (task_cons[i]->tss.esp + 8)) = memtotal;
-		task_run(task_cons[i], 2, 2); /* level=2, priority=2 */
-		sht_cons[i]->task = task_cons[i];
-		sht_cons[i]->flags |= 0x20;	/* 有光标 */
-		cons_fifo[i] = (int *) memman_alloc_4k(memman, 128 * 4);
-		fifo32_init(&task_cons[i]->fifo, 128, cons_fifo[i], task_cons[i]);
-	}
+	key_win = open_console(shtctl, memtotal);
 
 	/* sht_mouse */
 	sht_mouse = sheet_alloc(shtctl);
@@ -107,14 +86,11 @@ void FkjsMain(void) {
 	my = (binfo->scrny - 28 - 16) / 2;
 
 	sheet_slide(sht_back,  0,  0);
-	sheet_slide(sht_cons[1], 56,  6);
-	sheet_slide(sht_cons[0],  8,  2);
+	sheet_slide(key_win,   32, 4);
 	sheet_slide(sht_mouse, mx, my);
 	sheet_updown(sht_back,  0);
-	sheet_updown(sht_cons[1],  1);
-	sheet_updown(sht_cons[0],  2);
-	sheet_updown(sht_mouse,    3);
-	key_win = sht_cons[0];
+	sheet_updown(key_win,   1);
+	sheet_updown(sht_mouse,    2);
 	keywin_on(key_win);
 	
 	/* 为了避免和键盘当前状态冲突，在一开始先进性设置 */
@@ -146,9 +122,13 @@ void FkjsMain(void) {
 		} else {
 			i = fifo32_get(&fifo);
 			io_sti();
-			if (key_win->flags == 0) {	/* 输入窗口被关闭 */
-				key_win = shtctl->sheets[shtctl->top - 1];
-				keywin_on(key_win);
+			if (key_win != 0 && key_win->flags == 0) {	/* 关闭窗口 */
+				if (shtctl->top == 1) {	/* 没有更多窗口了 */
+					key_win = 0;
+				} else {
+					key_win = shtctl->sheets[shtctl->top - 1];
+					keywin_on(key_win);
+				}
 			}
 			if (256 <= i && i <= 511) { // 键盘
 				if (i < 0x80 + 256) { /* 按键编码转化为字符编码 */
@@ -166,10 +146,10 @@ void FkjsMain(void) {
 						s[0] += 0x20;	/* 转换 */
 					}
 				}
-				if (s[0] != 0) { 
+				if (s[0] != 0 && key_win) {
 					fifo32_put(&key_win->task->fifo, s[0] + 256);
 				}
-				if (i == 256 + 0x0f) {	/* Tab */
+				if (i == 256 + 0x0f && key_win) {	/* Tab */
 					keywin_off(key_win);
 					j = key_win->height - 1;
 					if (j == 0) {
@@ -205,15 +185,23 @@ void FkjsMain(void) {
 					fifo32_put(&keycmd, KEYCMD_LED);
 					fifo32_put(&keycmd, key_leds);
 				}
-				if (i == 256 + 0x3b && key_shift != 0) {
+				if (i == 256 + 0x3b && key_shift != 0 && key_win) {	/* Shift+F1 */
 					task = key_win->task;
-					if (task != 0 && task->tss.ss0 != 0) {	/* Shift+F1 */
+					if (task != 0 && task->tss.ss0 != 0) {
 						cons_putstr0(task->cons, "\nBreak(key) :\n");
 						io_cli();	
 						task->tss.eax = (int) &(task->tss.esp0);
 						task->tss.eip = (int) asm_end_app;
 						io_sti();
 					}
+				}
+				if (i == 256 + 0x3c && key_shift) {	/* Shift+F2 */
+					if (key_win)
+						keywin_off(key_win);
+					key_win = open_console(shtctl, memtotal);
+					sheet_slide(key_win, 32, 4);
+					sheet_updown(key_win, shtctl->top);
+					keywin_on(key_win);
 				}
 				if (i == 256 + 0x57 && shtctl->top > 2) {	/* F11 */
 					sheet_updown(shtctl->sheets[1], shtctl->top - 1);
@@ -297,6 +285,8 @@ void FkjsMain(void) {
 						}	/* 返回通常模式 */
 					}
 				}
+			} else if (768 <= i && i <= 1023) {
+				close_console(shtctl->sheets0 + (i - 768));
 			}
 		}
 	}
@@ -316,4 +306,52 @@ void keywin_on(struct SHEET *key_win)
 	if ((key_win->flags & 0x20) != 0) {
 		fifo32_put(&key_win->task->fifo, 2); /* 命令行窗口光标ON */
 	}
+}
+
+struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal)
+{
+	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+	struct SHEET *sht = sheet_alloc(shtctl);
+	unsigned char *buf = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
+	struct TASK *task = task_alloc();
+	int *cons_fifo = (int *) memman_alloc_4k(memman, 128 * 4);
+	sheet_setbuf(sht, buf, 256, 165, -1); /* 透明色 */
+	make_window8(buf, 256, 165, "console", 0);
+	make_textbox8(sht, 8, 28, 240, 128, COL8_000000);
+	task->cons_stack = memman_alloc_4k(memman, 64 * 1024);
+	task->tss.esp = task->cons_stack + 64 * 1024 - 12;
+	task->tss.eip = (int) &console_task;
+	task->tss.es = 1 * 8;
+	task->tss.cs = 2 * 8;
+	task->tss.ss = 1 * 8;
+	task->tss.ds = 1 * 8;
+	task->tss.fs = 1 * 8;
+	task->tss.gs = 1 * 8;
+	*((int *) (task->tss.esp + 4)) = (int) sht;
+	*((int *) (task->tss.esp + 8)) = memtotal;
+	task_run(task, 2, 2); /* level=2, priority=2 */
+	sht->task = task;
+	sht->flags |= 0x20;	/* 有光标 */
+	fifo32_init(&task->fifo, 128, cons_fifo, task);
+	return sht;
+}
+
+void close_constask(struct TASK *task)
+{
+	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+	task_sleep(task);
+	memman_free_4k(memman, task->cons_stack, 64 * 1024);
+	memman_free_4k(memman, (int) task->fifo.buf, 128 * 4);
+	task->flags = 0; /* 代替task_free(task);  */
+	return;
+}
+
+void close_console(struct SHEET *sht)
+{
+	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+	struct TASK *task = sht->task;
+	memman_free_4k(memman, (int) sht->buf, 256 * 165);
+	sheet_free(sht);
+	close_constask(task);
+	return;
 }
