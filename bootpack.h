@@ -251,6 +251,7 @@ struct TASKCTL {
 	struct TASKLEVEL level[MAX_TASKLEVELS];
 	struct TASK tasks0[MAX_TASKS];
 };
+extern struct TASKCTL *taskctl;
 extern struct TIMER *task_timer;
 struct TASK *task_now(void);
 struct TASK *task_init(struct MEMMAN *memman);
@@ -264,6 +265,7 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char ac
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
+void change_wtitle8(struct SHEET *sht, char act);
 
 /* console.c */
 struct CONSOLE {
@@ -297,3 +299,12 @@ struct FILEINFO {
 void file_readfat(int *fat, unsigned char *img);
 void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
 struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max);
+
+/* bootpack.c */
+struct TASK *open_constask(struct SHEET *sht, unsigned int memtotal);
+struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal);
+void close_constask(struct TASK *task);
+struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal);
+void keywin_on(struct SHEET *key_win);
+void keywin_off(struct SHEET *key_win);
+void close_console(struct SHEET *sht);
