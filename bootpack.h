@@ -113,6 +113,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define LIMIT_GDT		0x0000ffff
 #define ADR_BOTPAK		0x00280000
 #define LIMIT_BOTPAK	0x0007ffff
+#define AR_LDT			0x0082
 #define AR_DATA32_RW	0x4092
 #define AR_CODE32_ER	0x409a
 #define AR_TSS32		0x0089
@@ -237,6 +238,7 @@ struct TASK {
 	int level, priority;
 	struct FIFO32 fifo;
 	struct TSS32 tss;
+	struct SEGMENT_DESCRIPTOR ldt[2];
 	struct CONSOLE *cons;
 	int ds_base, cons_stack;
 };
