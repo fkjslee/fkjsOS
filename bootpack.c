@@ -193,6 +193,7 @@ void FkjsMain(void) {
 						task->tss.eax = (int) &(task->tss.esp0);
 						task->tss.eip = (int) asm_end_app;
 						io_sti();
+						task_run(task, -1, 0);
 					}
 				}
 				if (i == 256 + 0x3c && key_shift) {	/* Shift+F2 */
@@ -248,7 +249,7 @@ void FkjsMain(void) {
 											keywin_on(key_win);
 										}
 										if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) {
-											mmx = mx;	/* ¥¦¥£¥ó¥É¥¦ÒÆ„Ó¥â©`¥É¤Ø */
+											mmx = mx;
 											mmy = my;
 											mmx2 = sht->vx0;
 											new_wy = sht->vy0;
@@ -262,6 +263,7 @@ void FkjsMain(void) {
 												task->tss.eax = (int) &(task->tss.esp0);
 												task->tss.eip = (int) asm_end_app;
 												io_sti();
+												task_run(task, -1, 0);
 											} else {	/* ÃüÁîÐÐ */
 												task = sht->task;
 												io_cli();
