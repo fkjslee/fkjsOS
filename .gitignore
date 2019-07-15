@@ -10,5 +10,6 @@ bootpack.nas
 bootpack.map
 bootpack.bim
 bootpack.hrb
+apilib.lib
 fkjs.sys
 fkjs.img

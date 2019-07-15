@@ -20,6 +20,7 @@ BIN2OBJ  = $(TOOLPATH)bin2obj.exe
 RULEFILE = $(TOOLPATH)fkjs/fkjs.rul
 EDIMG    = $(TOOLPATH)edimg.exe
 IMGTOL   = $(TOOLPATH)imgtol.com
+GOLIB    = $(TOOLPATH)golib00.exe
 COPY     = copy
 DEL      = del
 MAKEFONT = $(TOOLPATH)makefont.exe
@@ -33,6 +34,8 @@ ipl10.bin : ipl10.nas Makefile
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
 
+apilib.lib : Makefile $(OBJS_API)
+	$(GOLIB) $(OBJS_API) out:apilib.lib
 
 bootpack.bim : $(OBJS_BOOTPACK) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
@@ -51,16 +54,16 @@ bootpack.hrb : bootpack.bim Makefile
 fkjs.sys : asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb fkjs.sys
 	
-color.bim : color.obj $(OBJS_API) Makefile
+color.bim : color.obj apilib.lib Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:color.bim stack:1k map:color.map \
-		color.obj $(OBJS_API)
+		color.obj apilib.lib
 
 color.hrb : color.bim Makefile
 	$(BIM2HRB) color.bim color.hrb 56k
 	
-color2.bim : color2.obj $(OBJS_API) Makefile
+color2.bim : color2.obj apilib.lib Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:color2.bim stack:1k map:color2.map \
-		color2.obj $(OBJS_API)
+		color2.obj apilib.lib
 
 color2.hrb : color2.bim Makefile
 	$(BIM2HRB) color2.bim color2.hrb 56k
