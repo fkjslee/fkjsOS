@@ -5,6 +5,11 @@ OBJS_BOOTPACK = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj \
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/fkjs/
 
+OBJS_API =	api001.obj api002.obj api003.obj api004.obj api005.obj api006.obj \
+			api007.obj api008.obj api009.obj api010.obj api011.obj api012.obj \
+			api013.obj api014.obj api015.obj api016.obj api017.obj api018.obj \
+			api019.obj api020.obj
+
 MAKE     = $(TOOLPATH)make.exe -r
 NASK     = $(TOOLPATH)nask.exe
 CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
@@ -46,28 +51,22 @@ bootpack.hrb : bootpack.bim Makefile
 fkjs.sys : asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb fkjs.sys
 	
-color.bim : color.obj a_nask.obj Makefile
+color.bim : color.obj $(OBJS_API) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:color.bim stack:1k map:color.map \
-		color.obj a_nask.obj
+		color.obj $(OBJS_API)
 
 color.hrb : color.bim Makefile
 	$(BIM2HRB) color.bim color.hrb 56k
 	
-color2.bim : color2.obj a_nask.obj Makefile
+color2.bim : color2.obj $(OBJS_API) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:color2.bim stack:1k map:color2.map \
-		color2.obj a_nask.obj
+		color2.obj $(OBJS_API)
 
 color2.hrb : color2.bim Makefile
 	$(BIM2HRB) color2.bim color2.hrb 56k
 	
-crack7.bim : crack7.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:crack7.bim stack:1k map:crack7.map crack7.obj
-
-crack7.hrb : crack7.bim Makefile
-	$(BIM2HRB) crack7.bim crack7.hrb 0k
-	
 fkjs.img : ipl10.bin fkjs.sys Makefile\
-		color.hrb color2.hrb crack7.hrb
+		color.hrb color2.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs.sys to:@: \
@@ -75,7 +74,6 @@ fkjs.img : ipl10.bin fkjs.sys Makefile\
 		copy from:make.bat to:@: \
 		copy from:color.hrb to:@: \
 		copy from:color2.hrb to:@: \
-		copy from:crack7.hrb to:@: \
 		imgout:fkjs.img
 
 # 一般规则
