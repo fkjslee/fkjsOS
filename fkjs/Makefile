@@ -1,14 +1,9 @@
 OBJS_BOOTPACK = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj \
 		int.obj fifo.obj keyboard.obj mouse.obj memory.obj sheet.obj timer.obj \
-		mtask.obj window.obj console.obj file.obj
+		mtask.obj window.obj console.obj file.obj tek.obj
 
 TOOLPATH = ../../z_tools/
 INCPATH  = ../../z_tools/fkjs/
-
-OBJS_API =	api001.obj api002.obj api003.obj api004.obj api005.obj api006.obj \
-			api007.obj api008.obj api009.obj api010.obj api011.obj api012.obj \
-			api013.obj api014.obj api015.obj api016.obj api017.obj api018.obj \
-			api019.obj api020.obj
 
 MAKE     = $(TOOLPATH)make.exe -r
 NASK     = $(TOOLPATH)nask.exe
@@ -26,11 +21,11 @@ DEL      = del
 MAKEFONT = $(TOOLPATH)makefont.exe
 
 default :
-	$(MAKE) ipl10.bin
+	$(MAKE) ipl20.bin
 	$(MAKE) fkjs.sys
 
-ipl10.bin : ipl10.nas Makefile
-	$(NASK) ipl10.nas ipl10.bin ipl10.lst
+ipl20.bin : ipl20.nas Makefile
+	$(NASK) ipl20.nas ipl20.bin ipl20.lst
 
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
@@ -77,5 +72,5 @@ cls :
 
 src_only :
 	$(MAKE) clean
-	-$(DEL) ipl10.bin
+	-$(DEL) ipl20.bin
 	-$(DEL) fkjs.sys

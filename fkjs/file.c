@@ -1,9 +1,7 @@
-/* ¥Õ¥¡¥¤¥ëév‚S */
 
 #include "bootpack.h"
 
 void file_readfat(int *fat, unsigned char *img)
-/* ¥Ç¥£¥¹¥¯¥¤¥á©`¥¸ÄÚ¤ÎFAT¤ÎˆR¿s¤ò¤È¤¯ */
 {
 	int i, j = 0;
 	for (i = 0; i < 2880; i += 2) {
@@ -71,4 +69,24 @@ next:
 		i++;
 	}
 	return 0; /* ÒŠ¤Ä¤«¤é¤Ê¤«¤Ã¤¿ */
+}
+
+char *file_loadfile2(int clustno, int *psize, int *fat)
+{
+	int size = *psize, size2;
+	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
+	char *buf, *buf2;
+	buf = (char *) memman_alloc_4k(memman, size);
+	file_loadfile(clustno, size, buf, fat, (char *) (ADR_DISKIMG + 0x003e00));
+	if (size >= 17) {
+		size2 = tek_getsize(buf);
+		if (size2 > 0) {	/* tekˆR¿s¤¬¤«¤«¤Ã¤Æ¤¤¤¿ */
+			buf2 = (char *) memman_alloc_4k(memman, size2);
+			tek_decomp(buf, buf2, size2);
+			memman_free_4k(memman, (int) buf, size);
+			buf = buf2;
+			*psize = size2;
+		}
+	}
+	return buf;
 }

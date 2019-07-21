@@ -11,13 +11,13 @@ default :
 	$(MAKE) fkjs.img
 	
 	
-fkjs.img : fkjs/ipl10.bin fkjs/fkjs.sys Makefile\
+fkjs.img : fkjs/ipl20.bin fkjs/fkjs.sys Makefile\
 		color/color.hrb color2/color2.hrb sosu3/sosu3.hrb\
 		sosu2/sosu2.hrb typeipl/typeipl.hrb type/type.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
-		wbinimg src:fkjs/ipl10.bin len:512 from:0 to:0 \
+		wbinimg src:fkjs/ipl20.bin len:512 from:0 to:0 \
 		copy from:fkjs/fkjs.sys to:@: \
-		copy from:fkjs/ipl10.nas to:@: \
+		copy from:fkjs/ipl20.nas to:@: \
 		copy from:make.bat to:@: \
 		copy from:color/color.hrb to:@: \
 		copy from:color2/color2.hrb to:@: \
