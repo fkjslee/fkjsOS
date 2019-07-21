@@ -13,7 +13,7 @@ default :
 	
 fkjs.img : fkjs/ipl10.bin fkjs/fkjs.sys Makefile\
 		color/color.hrb color2/color2.hrb sosu3/sosu3.hrb\
-		sosu2/sosu2.hrb typeipl/typeipl.hrb
+		sosu2/sosu2.hrb typeipl/typeipl.hrb type/type.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:fkjs/ipl10.bin len:512 from:0 to:0 \
 		copy from:fkjs/fkjs.sys to:@: \
@@ -24,6 +24,7 @@ fkjs.img : fkjs/ipl10.bin fkjs/fkjs.sys Makefile\
 		copy from:sosu3/sosu3.hrb to:@: \
 		copy from:sosu2/sosu2.hrb to:@: \
 		copy from:typeipl/typeipl.hrb to:@: \
+		copy from:type/type.hrb to:@: \
 		imgout:fkjs.img
 
 # 一般规则
@@ -64,6 +65,7 @@ full :
 	$(MAKE) -C sosu3
 	$(MAKE) -C sosu2
 	$(MAKE) -C typeipl
+	$(MAKE) -C type
 	$(MAKE) fkjs.img
 
 run_full :
