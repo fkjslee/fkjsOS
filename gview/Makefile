@@ -1,7 +1,11 @@
+APP      = gview
+STACK    = 4480k
+MALLOC   = 0k
+
 TOOLPATH = ../../z_tools/
 INCPATH  = ../../z_tools/fkjs/
 APILIBPATH   = ../apilib/
-FKJSPATH = ../fkjsbote/
+FKJSPATH = ../fkjs/
 
 MAKE     = $(TOOLPATH)make.exe -r
 NASK     = $(TOOLPATH)nask.exe
@@ -11,6 +15,7 @@ OBJ2BIM  = $(TOOLPATH)obj2bim.exe
 MAKEFONT = $(TOOLPATH)makefont.exe
 BIN2OBJ  = $(TOOLPATH)bin2obj.exe
 BIM2HRB  = $(TOOLPATH)bim2hrb.exe
+BIM2BIN  = $(TOOLPATH)bim2bin.exe
 RULEFILE = ../../z_tools/fkjs/fkjs.rul
 EDIMG    = $(TOOLPATH)edimg.exe
 IMGTOL   = $(TOOLPATH)imgtol.com
@@ -18,43 +23,44 @@ GOLIB    = $(TOOLPATH)golib00.exe
 COPY     = copy
 DEL      = del
 
+# デフォルト動作
+
 default :
 	$(MAKE) $(APP).hrb
 
-# 文件生成??
+# ファイル生成規則
 
-$(APP).bim : $(APP).obj $(APILIBPATH)apilib.lib Makefile ../app_make.txt
+$(APP).bim : $(APP).obj bmp.obj jpeg.obj $(APILIBPATH)apilib.lib Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:$(APP).bim map:$(APP).map stack:$(STACK) \
-		$(APP).obj $(APILIBPATH)apilib.lib
+		$(APP).obj jpeg.obj bmp.obj $(APILIBPATH)apilib.lib
 
-$(APP).hrb : $(APP).bim Makefile ../app_make.txt
-	$(BIM2HRB) $(APP).bim $(APP).hrb $(MALLOC)
-
-fkjs.img : ../fkjs/ipl10.bin ../fkjs/fkjs.sys $(APP).hrb \
-		Makefile ../app_make.txt
+fkjs.img : ../fkjs/ipl20.bin ../fkjs/fkjs.sys $(APP).hrb \
+		Makefile
 	$(EDIMG)   imgin:../../z_tools/fdimg0at.tek \
-		wbinimg src:../fkjs/ipl10.bin len:512 from:0 to:0 \
+		wbinimg src:../fkjs/ipl20.bin len:512 from:0 to:0 \
 		copy from:../fkjs/fkjs.sys to:@: \
 		copy from:$(APP).hrb to:@: \
+		copy from:../nihongo/nihongo.fnt to:@: \
 		imgout:fkjs.img
 
-# 一般??
+# 一般規則
 
-%.gas : %.c ../apilib.h Makefile ../app_make.txt
+%.gas : %.c ../apilib.h Makefile
 	$(CC1) -o $*.gas $*.c
 
-%.nas : %.gas Makefile ../app_make.txt
+%.nas : %.gas Makefile
 	$(GAS2NASK) $*.gas $*.nas
 
-%.obj : %.nas Makefile ../app_make.txt
+%.obj : %.nas Makefile
 	$(NASK) $*.nas $*.obj $*.lst
-	
-%.org : %.bim Makefile ../app_make.txt
+
+%.org : %.bim Makefile
 	$(BIM2HRB) $*.bim $*.org $(MALLOC)
 
-%.hrb : %.org Makefile ../app_make.txt
+%.hrb : %.org Makefile
 	$(BIM2BIN) -osacmp in:$*.org out:$*.hrb
-# 命令
+
+# コマンド
 
 run :
 	$(MAKE) fkjs.img
@@ -67,14 +73,16 @@ full :
 
 run_full :
 	$(MAKE) -C $(APILIBPATH)
-	$(MAKE) -C ../fkjsbote
+	$(MAKE) -C ../fkjs
 	$(MAKE) run
 
 clean :
 	-$(DEL) *.lst
-	-$(DEL) *.obj
+	-$(DEL) gview.obj
+	-$(DEL) jpeg.obj
 	-$(DEL) *.map
 	-$(DEL) *.bim
+	-$(DEL) *.org
 	-$(DEL) fkjs.img
 
 src_only :
