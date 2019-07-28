@@ -15,7 +15,7 @@ fkjs.img : fkjs/ipl20.bin fkjs/fkjs.sys Makefile \
 		color/color.hrb color2/color2.hrb sosu3/sosu3.hrb \
 		sosu2/sosu2.hrb typeipl/typeipl.hrb type/type.hrb \
 		notrec/notrec.hrb bball/bball.hrb invader/invader.hrb \
-		calc/calc.hrb tview/tview.hrb
+		calc/calc.hrb tview/tview.hrb mmlplay/mmlplay.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:fkjs/ipl20.bin len:512 from:0 to:0 \
 		copy from:fkjs/fkjs.sys to:@: \
@@ -32,6 +32,11 @@ fkjs.img : fkjs/ipl20.bin fkjs/fkjs.sys Makefile \
 		copy from:notrec/notrec.hrb to:@: \
 		copy from:calc/calc.hrb to:@: \
 		copy from:tview/tview.hrb to:@: \
+		copy from:mmlplay/mmlplay.hrb to:@: \
+		copy from:mmldata/kirakira.mml to:@: \
+		copy from:mmldata/fujisan.mml to:@: \
+		copy from:mmldata/daigo.mml to:@: \
+		copy from:mmldata/daiku.mml to:@: \
 		imgout:fkjs.img
 
 # 一般规则
@@ -78,6 +83,7 @@ full :
 	$(MAKE) -C bball
 	$(MAKE) -C calc
 	$(MAKE) -C tview
+	$(MAKE) -C mmlplay
 	$(MAKE) fkjs.img
 
 run_full :
