@@ -13,3 +13,4 @@ bootpack.hrb
 apilib.lib
 fkjs.sys
 fkjs.img
+!gview/bmp.obj
