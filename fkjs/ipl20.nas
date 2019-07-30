@@ -5,7 +5,7 @@
 		ORG		0x7c00			; 起始装载地址 org即origin
 		JMP		entry
 		DB		0x90
-		DB		"FKJS"			; 启动区名称(不能使用FKJSOS不知道为啥)
+		DB		"haribote"			; 启动区名称
 		DW		512				; 扇区大小
 		DB		1				; 簇大小
 		DW		1				; FAT起始地址，一般是1
