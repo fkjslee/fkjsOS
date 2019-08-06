@@ -20,7 +20,7 @@
 		DD		2880			; 重写一次磁盘大小
 		DB		0,0,0x29		; 不明，固定
 		DD		0xffffffff		; 不明
-		DB		"FKJSOS"		; 磁盘名称
+		DB		"HARIBOTEOS "		; 磁盘名称
 		DB		"FAT12   "		; 磁盘格式
 		RESB	18				; 空18字节
 
