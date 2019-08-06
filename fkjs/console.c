@@ -525,9 +525,9 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 					(struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
 			if (finfo != 0) {
 				reg[7] = (int) fh;
-				fh->buf = file_loadfile2(finfo->clustno, &fh->size, task->fat);
 				fh->size = finfo->size;
 				fh->pos = 0;
+				fh->buf = file_loadfile2(finfo->clustno, &fh->size, task->fat);
 			}
 		}
 	} else if (edx == 22) {
