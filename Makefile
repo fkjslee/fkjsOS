@@ -40,7 +40,9 @@ fkjs.img : fkjs/ipl20.bin fkjs/fkjs.sys Makefile \
 		copy from:mmldata/daiku.mml to:@: \
 		copy from:gview/gview.hrb to:@: \
 		copy from:pictdata/fujisan.jpg to:@: \
+		copy from:pictdata/jaime.jpg to:@: \
 		copy from:pictdata/night.bmp to:@: \
+		copy from:vow.txt to:@: \
 		imgout:fkjs.img
 
 # 一般规则
