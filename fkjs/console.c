@@ -415,7 +415,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		boxfill8(sht->buf, sht->bxsize, ebp, eax, ecx, esi, edi);
 		if ((ebx & 1) == 0) {
-			sheet_refresh(sht, esi, edi, esi + ecx * 8, edi + 16);
+			sheet_refresh(sht, eax, ecx, esi + 1, edi + 1);
 		}
 	} else if (edx == 8) {
 		memman_init((struct MEMMAN *) (ebx + ds_base));
